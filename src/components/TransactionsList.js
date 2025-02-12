@@ -1,12 +1,15 @@
+// src/components/TransactionsList.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../api';
+import Modal from './Modal';
+import TransactionForm from './TransactionForm';
 
 const TransactionsList = () => {
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState(null);
-  // 預設 selectedMonth 為空，代表顯示全部記錄
+  // 篩選月份
   const [selectedMonth, setSelectedMonth] = useState('');
-  // 追蹤目前編輯的記錄 id，若為 null 則表示沒有進入編輯模式
+  // 追蹤編輯中的記錄 id，若為 null 則表示非編輯模式
   const [editingId, setEditingId] = useState(null);
   // 編輯用的表單資料
   const [editForm, setEditForm] = useState({
@@ -15,12 +18,13 @@ const TransactionsList = () => {
     type: 'income',
     description: ''
   });
+  // 控制新增交易彈窗顯示的 state
+  const [showAddModal, setShowAddModal] = useState(false);
 
-  // 取得資料的共用函式
+  // 取得交易資料
   const fetchTransactions = async () => {
     try {
       let response;
-      // 若有選擇月份則呼叫 filter 端點，否則顯示全部記錄
       if (selectedMonth) {
         response = await api.get('/transactions/filter', {
           params: { month: selectedMonth }
@@ -49,7 +53,7 @@ const TransactionsList = () => {
     setSelectedMonth('');
   };
 
-  // 刪除記錄
+  // 刪除交易
   const handleDelete = async (id) => {
     try {
       await api.delete(`/transactions/${id}`);
@@ -60,7 +64,7 @@ const TransactionsList = () => {
     }
   };
 
-  // 進入編輯模式，並將該筆記錄資料填入編輯表單
+  // 進入編輯模式，並將該筆交易資料填入編輯表單
   const handleEditClick = (transaction) => {
     setEditingId(transaction.id);
     setEditForm({
@@ -74,13 +78,13 @@ const TransactionsList = () => {
   // 編輯表單資料變更
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm((prevState) => ({
-      ...prevState,
+    setEditForm((prev) => ({
+      ...prev,
       [name]: value
     }));
   };
 
-  // 取消編輯
+  // 取消編輯模式
   const handleEditCancel = () => {
     setEditingId(null);
     setEditForm({
@@ -91,7 +95,7 @@ const TransactionsList = () => {
     });
   };
 
-  // 儲存更新，呼叫 PUT API 更新記錄
+  // 儲存編輯更新
   const handleEditSave = async (id) => {
     try {
       await api.put(`/transactions/${id}`, editForm);
@@ -103,10 +107,7 @@ const TransactionsList = () => {
     }
   };
 
-  // 計算統計資料
-  // ※ 注意：這裡假設交易資料中的 amount 為正值，
-  // 若是支出則依 type 區分，統計時「總金額」就視為收入與支出金額的加總，
-  // 而「淨額」則為總收入減去總支出。
+  // 計算統計資料（此處假設 amount 為正值）
   const totalIncome = transactions
     .filter((tx) => tx.type === 'income')
     .reduce((sum, tx) => sum + Number(tx.amount), 0);
@@ -115,6 +116,14 @@ const TransactionsList = () => {
     .reduce((sum, tx) => sum + Number(tx.amount), 0);
   const totalAmount = totalIncome + totalExpense;
   const netAmount = totalIncome - totalExpense;
+
+  // 開啟新增交易彈窗
+  const openAddModal = () => setShowAddModal(true);
+  // 關閉新增交易彈窗並刷新列表資料
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    fetchTransactions();
+  };
 
   return (
     <div>
@@ -129,9 +138,15 @@ const TransactionsList = () => {
         />
         <button onClick={handleShowAll}>顯示全部</button>
       </div>
+
+      {/* 將「新增交易」按鈕放在列表內 */}
+      <div style={{ marginTop: '1rem' }}>
+        <button onClick={openAddModal}>新增交易</button>
+      </div>
+
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {/* 用表格顯示資料 */}
+      {/* 用表格顯示交易資料 */}
       <table border="1" cellPadding="8" cellSpacing="0" style={{ marginTop: '1rem' }}>
         <thead>
           <tr>
@@ -210,6 +225,14 @@ const TransactionsList = () => {
           </tr>
         </tfoot>
       </table>
+
+      {/* 新增交易的 Modal */}
+      {showAddModal && (
+        <Modal onClose={closeAddModal}>
+          {/* 傳入 closeAddModal 作為 onClose，新增成功後會自動刷新列表 */}
+          <TransactionForm onClose={closeAddModal} />
+        </Modal>
+      )}
     </div>
   );
 };
