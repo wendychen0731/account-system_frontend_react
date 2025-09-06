@@ -1,65 +1,69 @@
-// App.js
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Dashboard from './components/Dashboard';
-import TransactionsList from './components/TransactionsList';
-import TransactionForm from './components/TransactionForm';
-import Modal from './components/Modal';
-import Login from './pages/login';
-import Register from './pages/register';
-import LogoutButton from './components/logoutButton';
-import DailyChartPage from './pages/DailyChartPage'; // 新增每日統計頁面的 import
+// src/App.jsx
+import React, { useState, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 
-const Home = () => (
-  <div>
-    <h1>歡迎使用記帳系統</h1>
-    <p>這是首頁內容</p>
-  </div>
-);
+import Dashboard        from './components/Dashboard';
+import TransactionsList from './components/TransactionsList';
+import DailyChartPage   from './pages/DailyChartPage';
+import LogoutButton     from './components/LogoutButton';
+import AuthPage         from './pages/AuthPage';
+import RequireAuth      from './components/RequireAuth';
+import Settings         from './pages/Settings';
+
+import { getToken } from './api';
+import styles from './App.module.css';
 
 function App() {
-  // 控制 Modal 顯示的 state
-  const [showModal, setShowModal] = useState(false);
-  // 透過 refreshTrigger 來通知 TransactionsList 重新取得資料
-  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
 
-  const openModal = () => setShowModal(true);
-  const closeModal = () => {
-    setShowModal(false);
-    // 在關閉 Modal 時觸發 refreshTrigger 改變，進而重新取得交易資料
-    setRefreshTrigger((prev) => !prev);
-  };
+  const handleLoginSuccess = useCallback(() => {
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+  }, []);
+
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const handleRefresh = () => setRefreshTrigger((prev) => !prev);
 
   return (
     <Router>
-      <div>
-        <nav>
-          <ul>
-            <li><Link to="/">首頁</Link></li>
-            <li><Link to="/dashboard">統計數據</Link></li>
-            <li><Link to="/transactions">記帳紀錄</Link></li>
-            <li><Link to="/daily-chart">每日統計</Link></li> {/* 新增每日統計連結 */}
-            <li><Link to="/login">登入</Link></li>
-            <li><Link to="/register">註冊</Link></li>
-            <li><LogoutButton /></li>
-          </ul>
-        </nav>
-
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/transactions" element={<TransactionsList refreshTrigger={refreshTrigger} />} />
-          <Route path="/daily-chart" element={<DailyChartPage />} /> {/* 新增每日統計頁面路由 */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        </Routes>
-
-        {showModal && (
-          <Modal onClose={closeModal}>
-            {/* 將 closeModal 傳入 TransactionForm，操作成功後會關閉 Modal，同時刷新列表 */}
-            <TransactionForm onClose={closeModal} />
-          </Modal>
+      <div className={styles.container}>
+        {isAuthenticated && (
+          <nav className={styles.nav}>
+            <ul className={styles.navList}>
+              <li className={styles.navItem}><Link to="/dashboard" className={styles.navLink}>統計數據</Link></li>
+              <li className={styles.navItem}><Link to="/transactions" className={styles.navLink}>記帳紀錄</Link></li>
+              <li className={styles.navItem}><Link to="/daily-chart" className={styles.navLink}>每日統計</Link></li>
+              <li className={styles.navItem}><Link to="/settings" className={styles.navLink}>個人設定</Link></li>
+              <li className={styles.navItem}><LogoutButton onLogout={handleLogout} className={styles.navLink} /></li>
+            </ul>
+          </nav>
         )}
+
+        <main className={styles.main}>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                isAuthenticated
+                  ? <Navigate to="/dashboard" replace />
+                  : <AuthPage onLoginSuccess={handleLoginSuccess} />
+              }
+            />
+            <Route element={<RequireAuth />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route
+                path="/transactions"
+                element={<TransactionsList refreshTrigger={refreshTrigger} onCloseModal={handleRefresh} />}
+              />
+              <Route path="/daily-chart" element={<DailyChartPage />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );

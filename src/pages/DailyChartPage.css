@@ -1,0 +1,52 @@
+.chart-page {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .chart-page h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333333;
+  }
+  
+  .chart-page .controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .chart-page .controls input[type="month"] {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  
+  .chart-page .controls input[type="month"]:focus {
+    border-color: #007bff;
+  }
+  
+  .chart-page .chart-container {
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  
+  .chart-page .loading,
+  .chart-page .error,
+  .chart-page .no-data {
+    text-align: center;
+    font-size: 18px;
+    color: #666666;
+  }
+  
+  .chart-page .error {
+    color: #e74c3c;
+  }

@@ -25,7 +25,7 @@ const Register = () => {
     try {
       const response = await api.post('/register', formData);
       // 成功後儲存 token 並導向首頁
-      localStorage.setItem('auth_token', response.data.token);
+      localStorage.setItem('TOKEN_KEY', response.data.token);
       navigate('/');
     } catch (err) {
       console.error(err);

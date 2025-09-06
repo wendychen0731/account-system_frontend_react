@@ -1,27 +1,33 @@
-// src/components/LogoutButton.js
+// src/components/LogoutButton.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api';
+import api, { clearToken } from '../api';
 
-const LogoutButton = () => {
+const LogoutButton = ({ onLogout, className }) => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    const token = localStorage.getItem('auth_token');
     try {
-      await api.post('/logout', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // 可選：呼叫後端登出；攔截器會自動帶 Authorization
+      await api.post('/auth/logout', {}); // 若沒有此端點可省略
     } catch (err) {
       console.error(err);
     }
-    localStorage.removeItem('auth_token');
-    navigate('/login');
+
+    sessionStorage.setItem('skipAuthAlert', '1');
+    onLogout?.();
+    navigate('/', { replace: true });
+
+    setTimeout(() => {
+      clearToken();
+    }, 0);
   };
 
-  return <button onClick={handleLogout}>登出</button>;
+  return (
+    <button onClick={handleLogout} className={className}>
+      登出
+    </button>
+  );
 };
 
 export default LogoutButton;

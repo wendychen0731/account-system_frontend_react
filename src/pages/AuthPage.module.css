@@ -1,0 +1,171 @@
+/* ===== 整體容器 ─ 尺寸可自行調整 ===== */
+.container {
+  position: relative;
+  vertical-align: middle;
+  width: min(95vw, 1100px);
+  height: 100vh;
+  max-height: 600px;
+  margin: 60px auto;
+  overflow: hidden;
+}
+
+/* ===== 兩側黑色說明面板（背景物） ===== */
+.sidePanel {
+  position: absolute; 
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: #333;
+  color: #fff;
+  padding: 60px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+/* ----- 斜條紋淡入層 ----- */
+.sidePanel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,            /* 條紋角度 */
+    #6c757d 0 10px,   /* 灰色段 */
+    #f8f9fa 10px 20px /* 白色段 */
+  );
+  opacity: 0;                         /* 起始看不到 */
+  transition: opacity 1s ease;      /* 淡入時間 */
+  pointer-events: none;
+}
+
+.sidePanel.hidden::after {
+  opacity: 1;                         /* hidden 時才顯示斜條 */
+}
+
+/* ----- 左／右定位 ----- */
+.panelLeft  { left: 0; }
+.panelRight { right: 0; text-align: right; align-items: flex-end; }
+
+/* ----- 當被卡片遮住就隱形（但仍佔位，維持背景） ----- */
+.hidden > h2,
+.hidden > p,
+.hidden > button {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* ===== 標題與文字 ===== */
+.title { 
+  font-size: 28px; 
+  font-weight: 500; 
+  letter-spacing: 0.5px; 
+}
+.desc  { 
+  font-size: 14px; 
+  line-height: 1.6; 
+  max-width: 360px; 
+}
+.title, .desc {
+  width: 100%;
+  text-align: center;
+}
+
+/* ===== 面板上的切換按鈕 ===== */
+.sideBtn {
+  padding: 10px 32px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid #aaa;
+  color: #fff;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.sideBtn:hover { background: rgba(255, 255, 255, 0.1); }
+
+/* ===== 白色卡片（表單） ===== */
+.card {
+  position: absolute;
+  top: 0;
+  left: 50%;               /* 初始停在右半 */
+  width: 50%;
+  height: 100%;
+  padding: 80px 60px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: transform 0.6s ease-in-out;
+  z-index: 10;             /* 蓋住兩側面板 */
+}
+
+/* 切到註冊：整張卡片往左滑 100%（覆蓋左面板） */
+.toLeft { transform: translateX(-100%); }
+
+/* ===== 補齊：卡片需要白底，否則會透明疊在黑面板上 ===== */
+.card {
+  background: transparent;
+  border-radius: 12px;         /* 建議：圓角 */
+}
+
+/* ===== 補齊：表單樣式（你的 JSX 使用了這些 class） ===== */
+.form {
+  display: grid;
+  gap: 16px;
+  max-width: 360px;
+  margin: 0 auto;              /* 置中表單 */
+}
+
+.formTitle {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* label / input 基本樣式 */
+.form label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.form input[type="email"],
+.form input[type="password"] {
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+}
+.form input:focus {
+  border-color: #888;
+}
+
+/* 主要按鈕：沿用你面板按鈕的調性，但卡片是淺底所以反相 */
+.primaryBtn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: opacity .2s ease;
+}
+.primaryBtn:hover { opacity: .9; }
+
+/* 錯誤訊息 */
+.error {
+  margin-top: -4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #f4b4bb;
+  background: #fde7e9;
+  color: #b00020;
+  font-size: 13px;
+}
